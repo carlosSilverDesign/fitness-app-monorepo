@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from 'express';
 import authRoutes from './routes/auth.routes.js'; // Importamos el router
+import profileRoutes from './routes/profile.routes.js';
 
 const app = express();
 const PORT: number = 3000;
@@ -7,11 +8,14 @@ const PORT: number = 3000;
 // 1. PRIMERO: El middleware que traduce el JSON
 app.use(express.json());
 
-// 2. DESPUÉS: Tus rutas
+// 2. Rutas públicas (No requieren token)
 app.use('/api/v1/auth', authRoutes);
 
+// 3. Rutas protegidas (Requerirán token gracias al router que configuramos)
+app.use('/api/v1/profiles', profileRoutes);
+
 app.get('/', (req: Request, res: Response): void => {
-  res.send('¡Hola! El servidor del Fitness App está vivo.');
+  res.send('¡Hola! El servidor del Fitness App está vivo y estrictamente tipado.');
 });
 
 app.listen(PORT, (): void => {

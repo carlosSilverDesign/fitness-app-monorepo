@@ -58,3 +58,77 @@ export const createProfile = async (req: AuthRequest, res: Response): Promise<vo
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
+
+
+// NUEVA FUNCIÓN: Obtener el perfil del usuario autenticado
+export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    // 1. Extraemos el ID del token
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ error: 'Usuario no autenticado.' });
+      return;
+    }
+
+    // 2. Buscamos el perfil en la base de datos
+    const profile = await prisma.profile.findUnique({
+      where: { userId },
+    });
+
+    // 3. Si no existe, le avisamos amablemente
+    if (!profile) {
+      res.status(404).json({ error: 'Perfil no encontrado. Por favor, crea uno primero.' });
+      return;
+    }
+
+    // 4. Devolvemos los datos del perfil
+    res.status(200).json({ profile });
+  } catch (error) {
+    console.error('Error en getProfile:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
+
+
+// NUEVA FUNCIÓN: Actualizar el perfil (Estrictamente tipada)
+export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ error: 'Usuario no autenticado.' });
+      return;
+    }
+
+    const existingProfile = await prisma.profile.findUnique({ where: { userId } });
+    if (!existingProfile) {
+      res.status(404).json({ error: 'Perfil no encontrado para actualizar.' });
+      return;
+    }
+
+    const { firstName, lastName, gender, heightCm, dateOfBirth } = req.body;
+
+    // Construimos el objeto de actualización dinámicamente.
+    // Si la variable es undefined, la propiedad simplemente no se crea,
+    // haciendo a TypeScript (y a Prisma) inmensamente felices.
+    const dataToUpdate = {
+      ...(firstName !== undefined && { firstName }),
+      ...(lastName !== undefined && { lastName }),
+      ...(gender !== undefined && { gender }),
+      ...(heightCm !== undefined && { heightCm }),
+      ...(dateOfBirth !== undefined && { dateOfBirth: new Date(dateOfBirth) }),
+    };
+
+    const updatedProfile = await prisma.profile.update({
+      where: { userId },
+      data: dataToUpdate, // Pasamos el objeto limpio
+    });
+
+    res.status(200).json({
+      message: 'Perfil actualizado exitosamente',
+      profile: updatedProfile,
+    });
+  } catch (error) {
+    console.error('Error en updateProfile:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};

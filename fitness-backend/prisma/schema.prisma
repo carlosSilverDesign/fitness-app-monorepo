@@ -3,15 +3,21 @@
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
+// ------------------------------------------------------
+// CONFIGURACIÓN PRINCIPAL
+// ------------------------------------------------------
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-// Enumeración estricta para los roles de usuario
+// ------------------------------------------------------
+// ENUMS (Listas de valores permitidos)
+// ------------------------------------------------------
 enum Role {
   FREE
   PREMIUM
@@ -19,25 +25,86 @@ enum Role {
   ADMIN
 }
 
-model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  passwordHash  String
-  role          Role     @default(FREE)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+// ------------------------------------------------------
+// MODELOS PRINCIPALES (Tablas)
+// ------------------------------------------------------
 
-  // Relaciones
-  profile       Profile?
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(FREE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relaciones (Un usuario tiene...)
+  profile      Profile?
+  measurements Measurement[] // Muchas mediciones a lo largo del tiempo
+  routines     Routine[]     // Muchas rutinas asignadas o creadas
 }
 
 model Profile {
-  id          String   @id @default(uuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   firstName   String
   lastName    String
   gender      String?
   heightCm    Float?
   dateOfBirth DateTime?
+}
+
+// NUEVO: Tabla de Progresión Física (Fase 2)
+model Measurement {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  date              DateTime @default(now()) // Fecha de la medición
+  
+  // Datos Generales
+  weightKg          Float?
+  bodyFatPercentage Float?
+  
+  // Pliegues Cutáneos (en milímetros - Ideal para fórmulas de Jackson-Pollock)
+  tricepFold        Float?
+  pectoralFold      Float?
+  abdominalFold     Float?
+  thighFold         Float?
+  
+  // Perímetros (en centímetros)
+  waistCm           Float?
+  hipCm             Float?
+
+  createdAt         DateTime @default(now())
+}
+
+// NUEVO: Tabla de Rutinas (Fase 3)
+model Routine {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title       String   // Ej: "Día 1: Pecho y Tríceps"
+  description String?  // Ej: "Rutina enfocada en hipertrofia"
+  level       String?  // Ej: "PRINCIPIANTE", "AVANZADO"
+  isPremium   Boolean  @default(false) // Aquí está la clave para bloquear contenido
+  
+  items       RoutineItem[] // Conexión con los ejercicios
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// NUEVO: Ejercicios dentro de una Rutina (Fase 3)
+model RoutineItem {
+  id          String   @id @default(uuid())
+  routineId   String
+  routine     Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  
+  exercise    String   // Ej: "Press de Banca Plano"
+  sets        Int      // Ej: 4
+  reps        String   // Usamos String por si escriben "10-12" o "Al fallo"
+  restSeconds Int?     // Ej: 90 (segundos de descanso)
+  notes       String?  // Ej: "Bajar lento, explosivo al subir"
 }

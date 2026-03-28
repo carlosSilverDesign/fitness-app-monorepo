@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from 'express';
 import authRoutes from './routes/auth.routes.js'; // Importamos el router
 import profileRoutes from './routes/profile.routes.js';
+import measurementRoutes from './routes/measurement.routes.js';
 
 const app = express();
 const PORT: number = 3000;
@@ -13,6 +14,8 @@ app.use('/api/v1/auth', authRoutes);
 
 // 3. Rutas protegidas (Requerirán token gracias al router que configuramos)
 app.use('/api/v1/profiles', profileRoutes);
+
+app.use('/api/v1/measurements', measurementRoutes);
 
 app.get('/', (req: Request, res: Response): void => {
   res.send('¡Hola! El servidor del Fitness App está vivo y estrictamente tipado.');

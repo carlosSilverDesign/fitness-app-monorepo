@@ -52,6 +52,13 @@ model Profile {
   gender      String?
   heightCm    Float?
   dateOfBirth DateTime?
+
+  // NUEVOS CAMPOS: Perfil Integral del Atleta
+  phone             String?
+  activityLevel     String?   // Ej: SEDENTARIO, ACTIVO, ATLETA (Lo que hace)
+  dietPreference    String?   // Ej: VEGANA, KETO, FLEXIBLE (Lo que come)
+  fitnessGoals      String?   // Ej: PERDER_GRASA, GANAR_MASA (Objetivos)
+  medicalConditions String?   // Ej: ASMA, LESION_RODILLA (Condición médica)
 }
 
 // NUEVO: Tabla de Progresión Física (Fase 2)
@@ -64,17 +71,29 @@ model Measurement {
   
   // Datos Generales
   weightKg          Float?
-  bodyFatPercentage Float?
-  
-  // Pliegues Cutáneos (en milímetros - Ideal para fórmulas de Jackson-Pollock)
-  tricepFold        Float?
-  pectoralFold      Float?
-  abdominalFold     Float?
-  thighFold         Float?
+
+  // METADATOS CIENTÍFICOS (Lo que nos hace los mejores)
+  formulaUsed       String?  // Ej: "JACKSON_POLLOCK_7", "DURNIN_WOMERSLEY"
+  bodyDensity       Float?   // La Db intermedia que calculamos
+  bodyFatPercentage Float?   // El %BF final (Siri)
+
+  // RESULTADOS DERIVADOS (Lo que el Trainer quiere ver)
+  fatMassKg         Float?   // (weightKg * bodyFatPercentage) / 100
+  fatFreeMassKg     Float?   // weightKg - fatMassKg
   
   // Perímetros (en centímetros)
   waistCm           Float?
   hipCm             Float?
+
+  // NUEVOS CAMPOS: Los 8 Pliegues Cutáneos (en milímetros - mm)
+  tricepFold        Float?
+  pectoralFold      Float?
+  abdominalFold     Float?
+  thighFold         Float?
+  bicepFold         Float?       // Necesario para Durnin & Womersley
+  subscapularFold   Float?       // Necesario para J&P 7 y D&W
+  suprailiacFold    Float?       // Necesario para J&P 3/4/7 y D&W
+  midaxillaryFold   Float?       // Necesario para J&P 7
 
   createdAt         DateTime @default(now())
 }

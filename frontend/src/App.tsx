@@ -1,18 +1,19 @@
-import type { ReactElement } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Landing from './pages/Landing';
 
-// Definimos estrictamente que la función devuelve un elemento de React
-function App(): ReactElement {
+function App() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-950">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-emerald-400 mb-4">
-          ¡Frontend Iniciado!
-        </h1>
-        <p className="text-gray-300 text-lg">
-          Vite + React + Tailwind v4 con Tipado Estricto 🚀
-        </p>
-      </div>
-    </div>
+    <Router>
+      <Routes>
+        {/* El Landing Page será nuestra ruta principal */}
+        <Route path="/" element={<Landing />} />
+        
+        {/* Dejamos preparadas las rutas separadas para el futuro */}
+        <Route path="/login" element={<div className="p-10 text-white text-2xl">Página de Login en construcción...</div>} />
+        <Route path="/register" element={<div className="p-10 text-white text-2xl">Página de Registro en construcción...</div>} />
+        <Route path="/dashboard" element={<div className="p-10 text-white text-2xl">Dashboard VIP en construcción...</div>} />
+      </Routes>
+    </Router>
   );
 }
 

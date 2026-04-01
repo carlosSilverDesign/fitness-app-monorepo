@@ -1,9 +1,14 @@
 import express, { type Request, type Response } from 'express';
+import cors from 'cors';
 import authRoutes from './routes/auth.routes.js'; // Importamos el router
 import profileRoutes from './routes/profile.routes.js';
 import measurementRoutes from './routes/measurement.routes.js';
 
 const app = express();
+app.use(cors({
+  origin: 'http://localhost:5173', // Solo permitimos a nuestro frontend
+  credentials: true
+}));
 const PORT: number = 3000;
 
 // 1. PRIMERO: El middleware que traduce el JSON

@@ -7,15 +7,16 @@ import prisma from '../db/prisma.js';
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    // 🟢 1. Recibimos TODOS los datos del frontend (incluyendo el nombre)
+    const { email, password, firstName, lastName } = req.body;
 
-    // 1. Validación básica
-    if (!email || !password) {
-      res.status(400).json({ error: 'El email y la contraseña son obligatorios.' });
+    // 2. Validación básica actualizada
+    if (!email || !password || !firstName || !lastName) {
+      res.status(400).json({ error: 'Todos los campos son obligatorios (email, password, nombre y apellido).' });
       return;
     }
 
-    // 2. Verificar si el usuario ya existe en la base de datos
+    // 3. Verificar si el usuario ya existe en la base de datos
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -25,27 +26,43 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    // 3. Encriptar la contraseña (Hashing)
+    // 4. Encriptar la contraseña (Hashing)
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // 4. Crear el usuario en PostgreSQL usando Prisma
+    // ==========================================
+    // 🟢 EL ESLABÓN PERDIDO: CREAR USUARIO + PERFIL
+    // ==========================================
+    // Usamos una "Escritura Anidada" de Prisma para que sea transaccional.
+    // Si falla el perfil, falla el usuario, evitando cuentas huérfanas.
     const newUser = await prisma.user.create({
       data: {
         email,
         passwordHash,
-        role: 'FREE', // Valor por defecto según nuestro esquema
+        role: 'FREE', // Valor por defecto
+        // Le decimos a Prisma que cree el perfil vinculado automáticamente
+        profile: {
+          create: {
+            firstName,
+            lastName,
+          }
+        }
       },
+      // Le pedimos a Prisma que nos devuelva el usuario con su perfil incluido
+      include: {
+        profile: true
+      }
     });
 
-    // 5. Responder al frontend (Omitiendo enviar el passwordHash por seguridad)
+    // 6. Responder al frontend (Omitiendo enviar el passwordHash por seguridad)
     res.status(201).json({
-      message: 'Usuario creado exitosamente',
+      message: 'Usuario y perfil creados exitosamente',
       user: {
         id: newUser.id,
         email: newUser.email,
         role: newUser.role,
         createdAt: newUser.createdAt,
+        profile: newUser.profile // Devolvemos el perfil recién creado
       },
     });
   } catch (error) {
@@ -54,7 +71,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-// NUEVA FUNCIÓN: Inicio de sesión
+// NUEVA FUNCIÓN: Inicio de sesión (Se mantiene intacta)
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
@@ -71,7 +88,6 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     });
 
     // Tip de Senior: Por seguridad, nunca decimos si falló el correo o la contraseña.
-    // Solo decimos "Credenciales inválidas" para no dar pistas a los hackers.
     if (!user) {
       res.status(401).json({ error: 'Credenciales inválidas.' });
       return;
@@ -93,7 +109,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
     // 5. Generar el JWT (El "Carnet Digital")
     const token = jwt.sign(
-      { userId: user.id, role: user.role }, // Payload (Los datos útiles que viajan en el token)
+      { userId: user.id, role: user.role }, // Payload
       jwtSecret,                            // La firma secreta
       { expiresIn: '7d' }                   // Expiración: 7 días
     );

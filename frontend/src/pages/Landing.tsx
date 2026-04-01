@@ -1,5 +1,6 @@
 import Hero from '../components/Hero';
 import SEO from '../components/SEO';
+import Calculator from '../components/Calculator';
 
 export default function Landing() {
   return (
@@ -14,15 +15,22 @@ export default function Landing() {
       {/* Sección 1: El Hero Parallax */}
       <Hero />
       
-      {/* Sección 2: Espacio temporal para probar el Scroll (Aquí irá la Calculadora) */}
+      {/* 🖥️ C A L C U L A D O R A  */}
       <section 
         id="calculator-section" 
-        className="h-screen flex items-center justify-center bg-gray-950 border-t border-gray-800 relative z-20"
+        className="min-h-screen py-24 flex flex-col items-center justify-center bg-bg-dark relative z-20 px-4"
       >
-        <div className="text-center">
-          <h2 className="text-4xl text-gray-400 font-bold mb-4">Aquí irá la Calculadora Científica...</h2>
-          <p className="text-gray-600">Haz scroll hacia arriba y abajo para ver el efecto Parallax en el Hero.</p>
+        <div className="max-w-3xl mx-auto text-center mb-12">
+          <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
+            Descubre tu punto de partida
+          </h2>
+          <p className="text-lg text-gray-400">
+            Ingresa tus datos a continuación. Nuestra calculadora científica adaptará las mediciones necesarias según tu perfil biológico.
+          </p>
         </div>
+        
+        {/* Aquí renderizamos la tarjeta interactiva */}
+        <Calculator />
       </section>
     </main>
   );

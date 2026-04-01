@@ -82,7 +82,10 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
     }
 
     // 4. Devolvemos los datos del perfil
-    res.status(200).json({ profile });
+    res.status(200).json({
+      profile: profile, // Aquí van firstName, lastName, etc.
+      user: req.user,   // Aquí va el role y el userId del token
+    });
   } catch (error) {
     console.error('Error en getProfile:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });

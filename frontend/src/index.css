@@ -1,1 +1,28 @@
 @import "tailwindcss";
+
+/* AQUÍ DEFINIMOS NUESTRO BRANDING (Design Tokens) */
+@theme {
+  /* 1. Colores de Marca */
+  --color-primary: #10b981;       /* Verde Esmeralda (Principal) */
+  --color-primary-hover: #34d399; /* Verde claro para hover */
+  --color-bg-dark: #030712;       /* Fondo principal (Gris muy oscuro) */
+  --color-bg-card: #111827;       /* Fondo para tarjetas/calculadora */
+  
+  /* 2. Tipografías (Importaremos Inter de Google Fonts) */
+  --font-display: 'Inter', sans-serif; /* Para Títulos H1, H2 */
+  --font-body: 'Inter', sans-serif;    /* Para Párrafos */
+
+  /* 3. Bordes y Radios (Bordes redondeados) */
+  --radius-btn: 9999px;    /* Botones tipo pastilla (full) */
+  --radius-card: 1.5rem;   /* Tarjetas suaves (2xl) */
+}
+
+/* Base de la aplicación */
+@layer base {
+  body {
+    @apply bg-bg-dark text-white font-body;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+}

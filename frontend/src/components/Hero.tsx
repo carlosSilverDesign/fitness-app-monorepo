@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 // Importamos tu imagen desde la carpeta assets
-import heroImg from '../assets/hero.png';
+import heroImg from '../assets/hero.jpg';
 
 export default function Hero() {
   // Referencia para saber cuánto hemos hecho scroll en esta sección
@@ -30,8 +30,8 @@ export default function Hero() {
           className="w-full h-full object-cover opacity-50"
         />
         {/* Gradiente elegante para oscurecer la base y hacer legible el texto */}
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-900/60 to-transparent" />
-      </motion.div>
+        <div className="absolute inset-0 bg-linear-to-t from-gray-950 via-gray-900/60 to-transparent" />
+      </motion.div> 
 
       {/* CAPA 2: Contenido Frontal */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 w-full">

@@ -1,8 +1,16 @@
 import Hero from '../components/Hero';
+import SEO from '../components/SEO';
 
 export default function Landing() {
   return (
     <main className="bg-gray-950 min-h-screen text-white selection:bg-emerald-500 selection:text-white">
+
+    {/* Inyectamos el SEO ultra optimizado */}
+      <SEO 
+        title="Coach Lucy Pérez | Transforma tu Cuerpo con Ciencia"
+        description="Calcula tu porcentaje de grasa gratis y obtén un plan de entrenamiento personalizado basado en tu composición corporal real."
+      />
+
       {/* Sección 1: El Hero Parallax */}
       <Hero />
       

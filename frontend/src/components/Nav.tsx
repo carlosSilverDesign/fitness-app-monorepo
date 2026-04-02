@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 // 🟢 Importamos los iconos necesarios para la sesión
 import { Menu, X, ArrowRight, User, LogOut } from 'lucide-react'; 
@@ -17,24 +17,10 @@ const navLinks = [
 
 export default function Nav() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
 
   // 🟢 Traemos los datos del usuario logueado
   const { isAuthenticated, user, logout } = useAuth(); 
   const navigate = useNavigate();
-
-  // EFECTO DE SCROLL CONSOLIDADO
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll); // Limpieza
-  }, []);
 
   // SCROLL TO SECTION CONSOLIDADO
   const scrollToSection = (id: string) => {
@@ -67,16 +53,7 @@ export default function Nav() {
   };
 
   return (
-    <nav
-      className={`fixed top-0 left-0 w-full z-50 h-20 transition-all duration-300 flex items-center selection:bg-primary selection:text-white
-        ${isScrolled
-          ? 'bg-transparent border-transparent' /* Si quieres que SE DESVANEZCA al hacer scroll, usa esto */
-          /* ? 'bg-bg-dark/80 backdrop-blur-md border-b border-gray-800' // <- ESTE ES EL ESTÁNDAR (Aparece al hacer scroll) */
-          : 'bg-bg-dark/80 backdrop-blur-md border-b border-gray-800' /* Estado inicial (Arriba de todo) */
-        /* : 'bg-transparent border-transparent' // <- ESTADO INICIAL ESTÁNDAR (Transparente arriba) */
-        }
-      `}
-    >
+    <nav className="fixed top-0 left-0 w-full z-50 bg-bg-dark/95 backdrop-blur-md border-b border-gray-800 shadow-sm transition-all duration-300">
       <div className="max-w-7xl mx-auto px-6 sm:px-12 w-full flex items-center justify-between">
 
         {/* LOGO (Mantenemos tu diseño) */}

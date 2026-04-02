@@ -2,10 +2,14 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 // 1. SOLUCIÓN REACTNODE: Importación exclusiva de tipos
 import type { ReactNode } from 'react';
 
+// 🟢 AÑADIMOS LOS CAMPOS OPCIONALES AL TIPO
 type UserProfile = {
   firstName: string;
   lastName: string;
   role: string;
+  gender?: string;      
+  dateOfBirth?: string; 
+  heightCm?: number;    
 } | null;
 
 interface AuthContextType {
@@ -39,15 +43,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Todo perfecto, el perfil existe
         const data = await response.json();
         if (data.profile) {
+          // 🟢 MAPEAMOS LOS NUEVOS CAMPOS DEL BACKEND AL CONTEXTO
           setUser({
             firstName: data.profile.firstName,
             lastName: data.profile.lastName,
-            role: data.user.role
+            role: data.user.role,
+            gender: data.profile.gender,
+            dateOfBirth: data.profile.dateOfBirth,
+            heightCm: data.profile.heightCm
           });
           setIsAuthenticated(true);
         }
       } else if (response.status === 404) {
-        // 🟢 ¡LA SOLUCIÓN! El token es válido, pero el perfil aún no existe.
+        // El token es válido, pero el perfil aún no existe.
         // Lo mantenemos logueado con un nombre genérico para que no lo expulse.
         setUser({
           firstName: 'Atleta', // Nombre por defecto
@@ -67,8 +75,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Ahora el useEffect es 100% seguro y limpio
-  // Nota: Si tu linter es EXTREMADAMENTE estricto y aún subraya la siguiente línea, 
-  // descomenta la regla de eslint de abajo, ya que nuestra función es asíncrona y segura.
   useEffect(() => {
     // eslint-disable-next-line
     checkAuth();

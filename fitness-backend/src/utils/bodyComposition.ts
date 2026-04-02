@@ -37,7 +37,8 @@ export const analyzeComposition = (
   gender: string,
   age: number,
   weightKg: number | undefined,
-  folds: Skinfolds
+  folds: Skinfolds,
+  requestedProtocol: string
 ): CompositionResult | null => {
   let db: number | null = null;
   let formulaUsed = '';
@@ -65,7 +66,26 @@ export const analyzeComposition = (
     formulaUsed = 'JACKSON_POLLOCK_3';
   }
 
-  // 3. Evaluar resultados
+  // 3. 🟢 NUEVA: DURNIN & WOMERSLEY 4 PLIEGUES
+  else if (requestedProtocol === 'DW4' && folds.tricep && folds.bicep && folds.subscapular && folds.suprailiac) {
+    const sum4 = folds.tricep + folds.bicep + folds.subscapular + folds.suprailiac;
+    const logSum = Math.log10(sum4);
+    
+    if (gender === 'MASCULINO') {
+      if (age < 30) db = 1.1620 - (0.0630 * logSum);
+      else if (age < 40) db = 1.1422 - (0.0544 * logSum);
+      else if (age < 50) db = 1.1620 - (0.0700 * logSum);
+      else db = 1.1715 - (0.0779 * logSum);
+    } else {
+      if (age < 30) db = 1.1549 - (0.0678 * logSum);
+      else if (age < 40) db = 1.1423 - (0.0632 * logSum);
+      else if (age < 50) db = 1.1333 - (0.0612 * logSum);
+      else db = 1.1339 - (0.0645 * logSum);
+    }
+    formulaUsed = 'DURNIN_WOMERSLEY_4';
+  }
+
+  // Evaluar resultados
   if (!db) return null; // No hay suficientes datos para calcular
 
   const bodyFatPercentage = applySiriEquation(db);

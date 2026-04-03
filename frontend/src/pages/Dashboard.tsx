@@ -6,6 +6,8 @@ import SEO from '../components/SEO';
 import { useAuth } from '../context/AuthContext';
 import MeasurementForm from '../components/MeasurementForm';
 import ProfileForm from '../components/ProfileForm';
+import EvolutionChart from '../components/EvolutionChart';
+import Footer from '../components/Footer';
 
 export interface MeasurementData {
   id: string;
@@ -86,6 +88,7 @@ export default function Dashboard() {
 
   // Flujo de carga inicial
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (!localStorage.getItem('token')) {
       navigate('/login');
     } else {
@@ -104,239 +107,250 @@ export default function Dashboard() {
   }
 
   return (
-    // 🟢 SOLUCIÓN AL NAV: Agregamos pt-28 aquí directamente. ¡Nunca más chocará!
-    <main className="bg-bg-dark min-h-screen pb-12 selection:bg-primary selection:text-white">
+    <main className="bg-bg-dark min-h-screen flex flex-col selection:bg-primary selection:text-white">
       <SEO title="Mi Panel | Lugym by Coach Lucy" description="Tu centro de control de evolución física." />
 
-      <header className="bg-bg-card border-b border-gray-800 pt-8 pb-6 px-4 md:px-8">
-        <div className="max-w-6xl mx-auto flex justify-between items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">
-              Hola, {user?.firstName || 'Atleta'} 👋
-            </h1>
-            <p className="text-gray-400 mt-1">Bienvenido a tu panel de control en Lugym.</p>
+      <div className="flex-grow pb-12">
+        <header className="bg-bg-card border-b border-gray-800 pt-8 pb-6 px-4 md:px-8">
+          <div className="max-w-6xl mx-auto flex justify-between items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-extrabold text-white tracking-tight">
+                Hola, {user?.firstName || 'Atleta'} 👋
+              </h1>
+              <p className="text-gray-400 mt-1">Bienvenido a tu panel de control en Lugym.</p>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="max-w-6xl mx-auto px-4 md:px-8 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* COLUMNA IZQUIERDA */}
-        <div className="lg:col-span-2 space-y-6">
-          <motion.section
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-bg-card rounded-card p-6 md:p-6 border border-gray-800 shadow-xl"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Activity className="w-6 h-6 text-primary" />
-                Tu Composición Corporal
-              </h2>
-              <span className="text-xs font-medium bg-gray-800 text-gray-300 px-3 py-1 rounded-full">
-                Última medida: {metrics.lastDate}
-              </span>
-            </div>
-
-            {/* 🟢 MOSTRAMOS LOS DATOS REALES DE LA BASE DE DATOS */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 text-center">
-                <p className="text-gray-400 text-sm mb-1">Grasa Corporal</p>
-                <p className="text-3xl font-extrabold text-white">
-                  {metrics.bodyFat.toFixed(1)}<span className="text-lg text-primary">%</span>
-                </p>
+          {/* COLUMNA IZQUIERDA */}
+          <div className="lg:col-span-2 space-y-6">
+            <motion.section
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-bg-card rounded-card p-6 md:p-6 border border-gray-800 shadow-xl"
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0 mb-6">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Activity className="w-6 h-6 text-primary shrink-0" />
+                  Tu Composición Corporal
+                </h2>
+                <span className="text-xs font-medium bg-gray-800 text-gray-300 px-3 py-1 rounded-full self-start md:self-auto w-max">
+                  Última medida: {metrics.lastDate}
+                </span>
               </div>
-              <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 text-center">
-                <p className="text-gray-400 text-sm mb-1">Masa Magra</p>
-                <p className="text-3xl font-extrabold text-white">
-                  {metrics.leanMass.toFixed(1)}<span className="text-lg text-gray-500"> kg</span>
-                </p>
-              </div>
-              <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 text-center">
-                <p className="text-gray-400 text-sm mb-1">Masa Grasa</p>
-                <p className="text-3xl font-extrabold text-white">
-                  {metrics.fatMass.toFixed(1)}<span className="text-lg text-gray-500"> kg</span>
-                </p>
-              </div>
-            </div>
 
-            {metrics.lastDate !== 'Sin medidas' && (
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                className="mb-6 p-4 bg-gray-900/50 rounded-xl border border-gray-800"
-              >
-                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Detalle Científico</h3>
-                <div className="grid grid-cols-2 md:grid-cols-[1.5fr_1fr_1fr_1fr] gap-4">
-                  <div className="min-w-0">
-                    <p className="text-xs text-gray-500">Fórmula</p>
-                    <p
-                      className="text-white font-medium text-sm truncate"
-                      title={allMeasurements[0]?.formulaUsed?.replace(/_/g, ' ')}
-                    >
-                      {allMeasurements[0]?.formulaUsed?.replace(/_/g, ' ')}
-                    </p>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs text-gray-500">Densidad (Db)</p>
-                    <p className="text-white font-medium text-sm">{allMeasurements[0]?.bodyDensity?.toFixed(4)} g/cc</p>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs text-gray-500">Peso en Medición</p>
-                    <p className="text-white font-medium text-sm">{allMeasurements[0]?.weightKg} kg</p>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs text-gray-500">Suma de Pliegues</p>
-                    <p className="text-white font-medium text-sm">
-                      {((allMeasurements[0]?.tricepFold || 0) +
-                        (allMeasurements[0]?.pectoralFold || 0) +
-                        (allMeasurements[0]?.abdominalFold || 0) +
-                        (allMeasurements[0]?.thighFold || 0) +
-                        (allMeasurements[0]?.subscapularFold || 0) +
-                        (allMeasurements[0]?.suprailiacFold || 0) +
-                        (allMeasurements[0]?.midaxillaryFold || 0)).toFixed(1)} mm
-                    </p>
-                  </div>
+              {/* 🟢 MOSTRAMOS LOS DATOS REALES DE LA BASE DE DATOS */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 text-center">
+                  <p className="text-gray-400 text-sm mb-1">Grasa Corporal</p>
+                  <p className="text-3xl font-extrabold text-white">
+                    {metrics.bodyFat.toFixed(1)}<span className="text-lg text-primary">%</span>
+                  </p>
                 </div>
-              </motion.div>
-            )}
+                <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 text-center">
+                  <p className="text-gray-400 text-sm mb-1">Masa Magra</p>
+                  <p className="text-3xl font-extrabold text-white">
+                    {metrics.leanMass.toFixed(1)}<span className="text-lg text-gray-500"> kg</span>
+                  </p>
+                </div>
+                <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 text-center">
+                  <p className="text-gray-400 text-sm mb-1">Masa Grasa</p>
+                  <p className="text-3xl font-extrabold text-white">
+                    {metrics.fatMass.toFixed(1)}<span className="text-lg text-gray-500"> kg</span>
+                  </p>
+                </div>
+              </div>
 
-            {/* Botón Principal de Nueva Medición */}
-            <button
-              onClick={() => {
-                // 🟢 Si hay historial, cargamos el último por defecto. Si no, va nulo.
-                setSelectedMeasurement(allMeasurements.length > 0 ? allMeasurements[0] : null);
-                setIsMeasurementModalOpen(true);
-              }}
-              className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors border border-gray-700"
-            >
-              <Scale className="w-5 h-5" /> Ingresar Nueva Medición
-            </button>
-          </motion.section>
+              {metrics.lastDate !== 'Sin medidas' && (
+                <motion.div
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className="mb-6 p-4 bg-gray-900/50 rounded-xl border border-gray-800"
+                >
+                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Detalle Científico</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-[1.5fr_1fr_1fr_1fr] gap-4">
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500">Fórmula</p>
+                      <p
+                        className="text-white font-medium text-sm truncate"
+                        title={allMeasurements[0]?.formulaUsed?.replace(/_/g, ' ')}
+                      >
+                        {allMeasurements[0]?.formulaUsed?.replace(/_/g, ' ')}
+                      </p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500">Densidad (Db)</p>
+                      <p className="text-white font-medium text-sm">{allMeasurements[0]?.bodyDensity?.toFixed(4)} g/cc</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500">Peso en Medición</p>
+                      <p className="text-white font-medium text-sm">{allMeasurements[0]?.weightKg} kg</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500">Suma de Pliegues</p>
+                      <p className="text-white font-medium text-sm">
+                        {((allMeasurements[0]?.tricepFold || 0) +
+                          (allMeasurements[0]?.pectoralFold || 0) +
+                          (allMeasurements[0]?.abdominalFold || 0) +
+                          (allMeasurements[0]?.thighFold || 0) +
+                          (allMeasurements[0]?.subscapularFold || 0) +
+                          (allMeasurements[0]?.suprailiacFold || 0) +
+                          (allMeasurements[0]?.midaxillaryFold || 0)).toFixed(1)} mm
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
-          {/* 🟢 NUEVA SECCIÓN: HISTORIAL RÁPIDO */}
-          <div className="mt-8 bg-gray-900/50 rounded-2xl border border-gray-800 p-6">
-            <h3 className="text-lg font-bold text-white mb-6">Historial Reciente</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-gray-800 text-xs text-gray-500 uppercase tracking-wider">
-                    <th className="pb-3 font-semibold">Fecha</th>
-                    <th className="pb-3 font-semibold">Peso</th>
-                    <th className="pb-3 font-semibold">% Grasa</th>
-                    {/* 🟢 Nueva columna para el botón de edición */}
-                    <th className="pb-3 font-semibold text-right">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {allMeasurements.map((measure) => (
-                    <tr key={measure.id} className="border-b border-gray-800/50 last:border-0 hover:bg-gray-800/20 transition-colors">
-                      <td className="py-4 text-sm text-white">
-                        {new Date(measure.date || measure.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </td>
-                      <td className="py-4 text-sm text-gray-300">{measure.weightKg} kg</td>
-                      <td className="py-4 text-sm text-gray-300">{measure.bodyFatPercentage}%</td>
+              {/* Botón Principal de Nueva Medición */}
+              <button
+                onClick={() => {
+                  // 🟢 Si hay historial, cargamos el último por defecto. Si no, va nulo.
+                  setSelectedMeasurement(allMeasurements.length > 0 ? allMeasurements[0] : null);
+                  setIsMeasurementModalOpen(true);
+                }}
+                className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors border border-gray-700"
+              >
+                <Scale className="w-5 h-5" /> Ingresar Nueva Medición
+              </button>
+            </motion.section>
 
-                      {/* 🟢 El Botón del Lapicito Mágico */}
-                      <td className="py-4 text-sm text-right">
-                        <button
-                          onClick={() => {
-                            setSelectedMeasurement(measure); // Pasamos ESTA medida exacta
-                            setIsMeasurementModalOpen(true);
-                          }}
-                          className="p-2 text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-all"
-                          title="Editar registro"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                      </td>
+            {/* 🟢 NUEVA SECCIÓN: GRÁFICO DE EVOLUCIÓN */}
+            <EvolutionChart measurements={allMeasurements} />
+
+            {/* 🟢 NUEVA SECCIÓN: HISTORIAL RÁPIDO */}
+            <div className="mt-8 bg-gray-900/50 rounded-2xl border border-gray-800 p-6">
+              <h3 className="text-lg font-bold text-white mb-6">Historial Reciente</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-800 text-xs text-gray-500 uppercase tracking-wider">
+                      <th className="pb-3 font-semibold">Fecha</th>
+                      <th className="pb-3 font-semibold">Peso</th>
+                      <th className="pb-3 font-semibold">% Grasa</th>
+                      {/* 🟢 Nueva columna para el botón de edición */}
+                      <th className="pb-3 font-semibold text-right">Acción</th>
                     </tr>
-                  ))}
+                  </thead>
+                  <tbody>
+                    {allMeasurements.map((measure) => (
+                      <tr key={measure.id} className="border-b border-gray-800/50 last:border-0 hover:bg-gray-800/20 transition-colors">
+                        <td className="py-4 text-sm text-white">
+                          {new Date(measure.date || measure.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </td>
+                        <td className="py-4 text-sm text-gray-300">{measure.weightKg} kg</td>
+                        <td className="py-4 text-sm text-gray-300">{measure.bodyFatPercentage}%</td>
 
-                  {allMeasurements.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="py-8 text-center text-sm text-gray-500">
-                        Aún no tienes mediciones en tu historial.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                        {/* 🟢 El Botón del Lapicito Mágico */}
+                        <td className="py-4 text-sm text-right">
+                          <button
+                            onClick={() => {
+                              setSelectedMeasurement(measure); // Pasamos ESTA medida exacta
+                              setIsMeasurementModalOpen(true);
+                            }}
+                            className="p-2 text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-all"
+                            title="Editar registro"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+
+                    {allMeasurements.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="py-8 text-center text-sm text-gray-500">
+                          Aún no tienes mediciones en tu historial.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
+
+            {/* ... (Sección de Rutinas se mantiene igual) ... */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+              className="bg-gradient-to-br from-gray-900 to-bg-card rounded-card p-6 md:p-8 border border-primary/20 shadow-xl relative overflow-hidden"
+            >
+              <div className="absolute -right-6 -top-6 text-primary/10">
+                <Dumbbell className="w-48 h-48 rotate-12" />
+              </div>
+              <div className="relative z-10">
+                <span className="inline-block bg-primary/20 text-primary text-xs font-bold px-3 py-1 rounded-full mb-3 uppercase tracking-wider">Próximamente</span>
+                <h2 className="text-2xl font-bold text-white mb-2">Tus Rutinas Lugym</h2>
+                <p className="text-gray-400 max-w-md mb-6">
+                  Coach Lucy está diseñando tu plan de entrenamiento. Pronto podrás ver tus ejercicios aquí.
+                </p>
+                <button disabled className="bg-gray-800 text-gray-500 font-semibold py-3 px-6 rounded-xl cursor-not-allowed">
+                  Módulo Bloqueado
+                </button>
+              </div>
+            </motion.section>
+
           </div>
 
-          {/* ... (Sección de Rutinas se mantiene igual) ... */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            className="bg-gradient-to-br from-gray-900 to-bg-card rounded-card p-6 md:p-8 border border-primary/20 shadow-xl relative overflow-hidden"
-          >
-            <div className="absolute -right-6 -top-6 text-primary/10">
-              <Dumbbell className="w-48 h-48 rotate-12" />
-            </div>
-            <div className="relative z-10">
-              <span className="inline-block bg-primary/20 text-primary text-xs font-bold px-3 py-1 rounded-full mb-3 uppercase tracking-wider">Próximamente</span>
-              <h2 className="text-2xl font-bold text-white mb-2">Tus Rutinas Lugym</h2>
-              <p className="text-gray-400 max-w-md mb-6">
-                Coach Lucy está diseñando tu plan de entrenamiento. Pronto podrás ver tus ejercicios aquí.
-              </p>
-              <button disabled className="bg-gray-800 text-gray-500 font-semibold py-3 px-6 rounded-xl cursor-not-allowed">
-                Módulo Bloqueado
-              </button>
-            </div>
-          </motion.section>
-
-        </div>
-
-        {/* COLUMNA DERECHA */}
-        <div className="space-y-6">
-          {/* ... (Sección de Perfil se mantiene igual) ... */}
-          <motion.section
-            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
-            className="bg-bg-card rounded-card p-6 border border-gray-800 shadow-xl"
-          >
-            <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-6">
-              <User className="w-5 h-5 text-primary" />
-              Tu Perfil
-            </h2>
-
-            <div className="space-y-4">
-              <div className="flex justify-between items-center border-b border-gray-800 pb-3">
-                <span className="text-gray-400">Estado</span>
-                <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded text-sm font-semibold">Activo</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-gray-800 pb-3">
-                <span className="text-gray-400">Plan</span>
-                <span className="text-white font-medium">Básico (Gratis)</span>
-              </div>
-              <button onClick={() => setIsProfileModalOpen(true)} className="w-full flex items-center justify-between group mt-2 pt-2 cursor-pointer">
-                <span className="text-gray-300 group-hover:text-white transition-colors">Completar Ficha Médica</span>
-                <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-primary transition-colors" />
-              </button>
-              <button onClick={() => setIsGoalsModalOpen(true)} className="w-full flex items-center justify-between group cursor-pointer">
-                <span className="text-gray-300 group-hover:text-white transition-colors">Actualizar Objetivos</span>
-                <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-primary transition-colors" />
-              </button>
-            </div>
-          </motion.section>
-
-          {/* ... (Sección Premium se mantiene igual) ... */}
-          <motion.section
-            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
-            className="bg-bg-card rounded-card p-6 border border-gray-800 shadow-xl"
-          >
-            <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
-              <Target className="w-5 h-5 text-primary" />
-              Asesoría Premium
-            </h2>
-            <p className="text-sm text-gray-400 mb-4">
-              ¿Quieres llevar tus resultados al siguiente nivel con el seguimiento 1 a 1 de Coach Lucy?
-            </p>
-            <button
-              onClick={() => navigate('/planes')}
-              className="w-full bg-primary hover:bg-primary-hover text-bg-dark font-bold py-3 rounded-xl transition-colors cursor-pointer"
+          {/* COLUMNA DERECHA */}
+          <div className="space-y-6">
+            {/* ... (Sección de Perfil se mantiene igual) ... */}
+            <motion.section
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
+              className="bg-bg-card rounded-card p-6 border border-gray-800 shadow-xl"
             >
-              Ver Planes de Coach Lucy
-            </button>
-          </motion.section>
-        </div>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-6">
+                <User className="w-5 h-5 text-primary" />
+                Tu Perfil
+              </h2>
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-center border-b border-gray-800 pb-3">
+                  <span className="text-gray-400">Estado</span>
+                  <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded text-sm font-semibold">Activo</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-gray-800 pb-3">
+                  <span className="text-gray-400">Plan</span>
+                  <span className="text-white font-medium">Básico (Gratis)</span>
+                </div>
+                <button onClick={() => setIsProfileModalOpen(true)} className="w-full flex items-center justify-between group mt-2 pt-2 cursor-pointer">
+                  <span className="text-gray-300 group-hover:text-white transition-colors">Completar Ficha Médica</span>
+                  <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-primary transition-colors" />
+                </button>
+                <button onClick={() => setIsGoalsModalOpen(true)} className="w-full flex items-center justify-between group cursor-pointer">
+                  <span className="text-gray-300 group-hover:text-white transition-colors">Actualizar Objetivos</span>
+                  <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-primary transition-colors" />
+                </button>
+              </div>
+            </motion.section>
+
+            {/* ... (Sección Premium se mantiene igual) ... */}
+            <motion.section
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
+              className="bg-bg-card rounded-card p-6 border border-gray-800 shadow-xl"
+            >
+              <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
+                <Target className="w-5 h-5 text-primary" />
+                Asesoría Premium
+              </h2>
+              <p className="text-sm text-gray-400 mb-4">
+                ¿Quieres llevar tus resultados al siguiente nivel con el seguimiento 1 a 1 de Coach Lucy?
+              </p>
+              <button
+                onClick={() => {
+                  navigate('/');
+                  // Esperamos un instante a que cargue la Landing y hacemos scroll a Servicios
+                  setTimeout(() => {
+                    const element = document.getElementById('services-section');
+                    if (element) element.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+                className="w-full bg-primary hover:bg-primary-hover text-bg-dark font-bold py-3 rounded-xl transition-colors cursor-pointer"
+              >
+                Explora tu potencial
+              </button>
+            </motion.section>
+          </div>
+        </div> {/* Cierre del flex-grow */}
       </div>
 
       <AnimatePresence>
@@ -419,6 +433,7 @@ export default function Dashboard() {
         )}
 
       </AnimatePresence>
+      <Footer />
     </main>
   );
 }

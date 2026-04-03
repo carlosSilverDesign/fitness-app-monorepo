@@ -26,6 +26,10 @@ export default function Nav() {
   const scrollToSection = (id: string) => {
     // Cerramos el menú móvil inmediatamente al hacer clic
     setIsOpen(false);
+
+    if (id === 'calculator-section') {
+      window.dispatchEvent(new Event('nav-calculator-clicked'));
+    }
     
     // Si estamos en el dashboard y tocamos un link, nos manda al landing primero
     if (window.location.pathname !== '/') {

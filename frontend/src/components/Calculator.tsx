@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Lock, User, Scale, Activity, ChevronLeft } from 'lucide-react';
+import { ArrowRight, Lock, User, Scale, Activity, ChevronLeft, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+// 🟢 1. IMPORTAMOS TU CONTEXTO DE AUTENTICACIÓN
+import { useAuth } from '../context/AuthContext'; // Ajusta la ruta si es necesario
 
 // Tipos para nuestro estado local
 type Gender = 'MASCULINO' | 'FEMENINO' | null;
@@ -16,24 +18,32 @@ type CalculatorData = {
 
 export default function Calculator() {
   const navigate = useNavigate();
+  // 🟢 2. EXTRAEMOS EL ESTADO DEL USUARIO
+  const { isAuthenticated } = useAuth(); 
+  
   const [step, setStep] = useState(1);
   const [resultBF, setResultBF] = useState<number | null>(null);
+  
+  // 🟢 3. NUEVOS ESTADOS PARA LOS CÁLCULOS COMPLETOS Y GUARDADO
+  const [masses, setMasses] = useState<{ lean: number | null, fat: number | null }>({ lean: null, fat: null });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
   const [data, setData] = useState<CalculatorData>({
     gender: null, age: '', weightKg: '', fold1: '', fold2: '', fold3: ''
   });
 
-  // Manejador genérico de inputs
   const handleChange = (field: keyof CalculatorData, value: number | string) => {
     setData(prev => ({ ...prev, [field]: value }));
   };
 
-  // El Motor Matemático (Jackson & Pollock 3 Pliegues)
   const calculateResult = () => {
-    const { gender, age, fold1, fold2, fold3 } = data;
-    if (!gender || !age || !fold1 || !fold2 || !fold3) return;
+    const { gender, age, fold1, fold2, fold3, weightKg } = data;
+    if (!gender || !age || !fold1 || !fold2 || !fold3 || !weightKg) return;
 
     const sum3 = Number(fold1) + Number(fold2) + Number(fold3);
     const ageNum = Number(age);
+    const weightNum = Number(weightKg);
     let db = 0;
 
     if (gender === 'MASCULINO') {
@@ -42,12 +52,52 @@ export default function Calculator() {
       db = 1.0994921 - (0.0009929 * sum3) + (0.0000023 * Math.pow(sum3, 2)) - (0.0001392 * ageNum);
     }
 
+    // Cálculos de Composición
     const bodyFat = (495 / db) - 450;
-    setResultBF(parseFloat(bodyFat.toFixed(1)));
-    setStep(3); // Avanzamos al resultado final
+    const finalBF = parseFloat(bodyFat.toFixed(1));
+    const fatMass = (weightNum * finalBF) / 100;
+    const leanMass = weightNum - fatMass;
+
+    setResultBF(finalBF);
+    setMasses({ lean: parseFloat(leanMass.toFixed(1)), fat: parseFloat(fatMass.toFixed(1)) });
+    setStep(3); 
   };
 
-  // Variantes de animación para Framer Motion
+  // 🟢 4. FUNCIÓN PARA GUARDAR EN LA BASE DE DATOS (Solo para logueados)
+  const handleSaveToDashboard = async () => {
+    setIsSaving(true);
+    try {
+      const token = localStorage.getItem('token');
+      // Mapeamos dinámicamente los pliegues según el género para la fórmula JP3
+      const payload = {
+        formulaUsed: 'JP3',
+        weightKg: Number(data.weightKg),
+        thighFold: Number(data.fold3),
+        ...(data.gender === 'MASCULINO' 
+          ? { pectoralFold: Number(data.fold1), abdominalFold: Number(data.fold2) }
+          : { tricepFold: Number(data.fold1), suprailiacFold: Number(data.fold2) })
+      };
+
+      const response = await fetch('http://localhost:3000/api/v1/measurements', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        setSaveSuccess(true);
+        setTimeout(() => navigate('/dashboard'), 1500); // Redirige al dashboard tras el éxito
+      }
+    } catch (error) {
+      console.error("Error al guardar:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const slideVariants = {
     enter: { x: 50, opacity: 0 },
     center: { x: 0, opacity: 1 },
@@ -57,7 +107,6 @@ export default function Calculator() {
   return (
     <div className="w-full max-w-lg mx-auto bg-bg-card rounded-card p-6 md:p-8 shadow-2xl border border-gray-800">
       
-      {/* Indicador de Progreso */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-2">
           {step > 1 && (
@@ -78,11 +127,9 @@ export default function Calculator() {
         </div>
       </div>
 
-      {/* Contenedor animado de los pasos */}
       <div className="relative overflow-hidden min-h-[320px]">
         <AnimatePresence mode="wait">
           
-          {/* FASE 1: GÉNERO, EDAD Y PESO */}
           {step === 1 && (
             <motion.div key="step1" variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
               
@@ -130,7 +177,6 @@ export default function Calculator() {
             </motion.div>
           )}
 
-          {/* FASE 2: PLIEGUES (Dinámico según género) */}
           {step === 2 && (
             <motion.div key="step2" variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
               <p className="text-gray-400 text-sm mb-4">Ingresa la medida de tus pliegues en milímetros (mm) usando tu cáliper.</p>
@@ -166,7 +212,6 @@ export default function Calculator() {
             </motion.div>
           )}
 
-          {/* FASE 3: EL RESULTADO Y EL GANCHO (Gated Content) */}
           {step === 3 && (
             <motion.div key="step3" variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4 }} className="text-center space-y-6">
               
@@ -176,7 +221,6 @@ export default function Calculator() {
                   {resultBF}<span className="text-3xl text-primary">%</span>
                 </h2>
                 <div className="w-full bg-gray-800 h-3 rounded-full mt-6 overflow-hidden flex">
-                  {/* Barra de colores visual: Esencial para UX */}
                   <div className="h-full bg-blue-500" style={{ width: '15%' }}></div>
                   <div className="h-full bg-primary" style={{ width: '45%' }}></div>
                   <div className="h-full bg-yellow-500" style={{ width: '25%' }}></div>
@@ -184,34 +228,53 @@ export default function Calculator() {
                 </div>
               </div>
 
-              {/* El Paywall Psicológico */}
+              {/* 🟢 5. RENDERIZADO CONDICIONAL DEL DESGLOSE (Masa Magra/Grasa) */}
               <div className="relative bg-gray-900/50 rounded-2xl p-6 border border-gray-800/50 overflow-hidden">
-                <div className="blur-sm opacity-50 select-none">
+                <div className={!isAuthenticated ? "blur-sm opacity-50 select-none" : ""}>
                   <div className="flex justify-between border-b border-gray-700 pb-3 mb-3">
                     <span className="text-gray-400">Masa Magra (Músculo):</span>
-                    <span className="font-bold text-white">??.? kg</span>
+                    <span className="font-bold text-white">
+                      {isAuthenticated ? `${masses.lean} kg` : '??.? kg'}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Masa Grasa:</span>
-                    <span className="font-bold text-white">??.? kg</span>
+                    <span className="font-bold text-white">
+                      {isAuthenticated ? `${masses.fat} kg` : '??.? kg'}
+                    </span>
                   </div>
                 </div>
                 
-                {/* Overlay del candado */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-card/40 backdrop-blur-[2px]">
-                  <Lock className="w-8 h-8 text-primary mb-2" />
-                  <p className="text-sm font-medium text-white px-4">Análisis detallado bloqueado</p>
-                </div>
+                {!isAuthenticated && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-card/40 backdrop-blur-[2px]">
+                    <Lock className="w-8 h-8 text-primary mb-2" />
+                    <p className="text-sm font-medium text-white px-4">Análisis detallado bloqueado</p>
+                  </div>
+                )}
               </div>
 
-              <button 
-                onClick={() => navigate('/register')}
-                className="w-full h-16 bg-white hover:bg-gray-200 text-bg-dark font-extrabold rounded-btn transition-colors flex items-center justify-center gap-2 text-lg shadow-lg shadow-white/10"
-              >
-                Guardar Resultado Gratis
-                <ArrowRight className="w-6 h-6" />
-              </button>
-              <p className="text-xs text-gray-500">Crea tu cuenta en 10 segundos y desbloquea tu historial.</p>
+              {/* 🟢 6. BOTÓN DINÁMICO (Guardar vs Registrarse) */}
+              {isAuthenticated ? (
+                <button 
+                  onClick={handleSaveToDashboard}
+                  disabled={isSaving || saveSuccess}
+                  className={`w-full h-16 font-extrabold rounded-btn transition-all flex items-center justify-center gap-2 text-lg shadow-lg cursor-pointer disabled:opacity-80 ${saveSuccess ? 'bg-green-500 text-white' : 'bg-primary hover:bg-primary-hover text-bg-dark shadow-primary/10'}`}
+                >
+                  {isSaving ? 'Guardando...' : saveSuccess ? '¡Guardado!' : 'Guardar en mi Historial'}
+                  {saveSuccess ? <CheckCircle2 className="w-6 h-6" /> : <ArrowRight className="w-6 h-6" />}
+                </button>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => navigate('/register')}
+                    className="w-full h-16 bg-white hover:bg-gray-200 text-bg-dark font-extrabold rounded-btn transition-colors flex items-center justify-center gap-2 text-lg shadow-lg shadow-white/10"
+                  >
+                    Guardar Resultado Gratis
+                    <ArrowRight className="w-6 h-6" />
+                  </button>
+                  <p className="text-xs text-gray-500">Crea tu cuenta en 10 segundos y desbloquea tu historial.</p>
+                </>
+              )}
               
             </motion.div>
           )}

@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import logoSvg from '../assets/Logo-Lugym-2026.svg';
 
 const navLinks = [
-  { name: 'Sobre Mí', id: 'about-section' },
+  { name: 'Sobre Mí', id: 'sobre-mi' },
   { name: 'Calculadora', id: 'calculator-section' },
   { name: 'Servicios', id: 'services-section' },
   { name: 'Testimonios', id: 'testimonials-section' },
@@ -22,8 +22,9 @@ export default function Nav() {
   const { isAuthenticated, user, logout } = useAuth(); 
   const navigate = useNavigate();
 
-  // SCROLL TO SECTION CONSOLIDADO
+  // 🟢 SCROLL TO SECTION CONSOLIDADO Y LIMPIO
   const scrollToSection = (id: string) => {
+    // Cerramos el menú móvil inmediatamente al hacer clic
     setIsOpen(false);
     
     // Si estamos en el dashboard y tocamos un link, nos manda al landing primero
@@ -32,9 +33,8 @@ export default function Nav() {
       setTimeout(() => {
         const element = document.getElementById(id);
         if (element) {
-          const navHeight = 80;
-          const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-          window.scrollTo({ top: elementPosition - navHeight, behavior: 'smooth' });
+          // Usamos scrollIntoView que ahora respeta el scroll-mt-32 que pusimos en las secciones
+          element.scrollIntoView({ behavior: 'smooth' });
         }
       }, 100);
       return;
@@ -43,12 +43,7 @@ export default function Nav() {
     // Comportamiento normal si ya estamos en el Landing
     const element = document.getElementById(id);
     if (element) {
-      const navHeight = 80;
-      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({
-        top: elementPosition - navHeight,
-        behavior: 'smooth'
-      });
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -57,7 +52,14 @@ export default function Nav() {
       <div className="max-w-7xl mx-auto px-6 sm:px-12 w-full flex items-center justify-between">
 
         {/* LOGO (Mantenemos tu diseño) */}
-        <Link to="/" className="flex items-center gap-2">
+        <Link 
+          to="/" 
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setIsOpen(false); // Cerramos el menú si hace clic en el logo en móvil
+          }}
+          className="flex items-center gap-2"
+        >
           {/* h-20 y object-contain para asegurar nitidez */}
           <img src={logoSvg} alt="Coach Lucy Perez Logo" className="pt-2 h-20 w-auto object-contain" />
 

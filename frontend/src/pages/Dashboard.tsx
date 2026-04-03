@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Scale, Target, User, ChevronRight, Dumbbell, X } from 'lucide-react';
+import { Activity, Scale, Target, User, ChevronRight, Dumbbell, X, Edit3 } from 'lucide-react';
 import SEO from '../components/SEO';
 import { useAuth } from '../context/AuthContext';
 import MeasurementForm from '../components/MeasurementForm';
@@ -36,6 +36,7 @@ export default function Dashboard() {
   const [isMeasurementModalOpen, setIsMeasurementModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false); // 🟢 NUEVO: Controla el modal de objetivos
+  const [selectedMeasurement, setSelectedMeasurement] = useState<MeasurementData | null>(null);
 
   // 🟢 ESTADO PARA LAS MÉTRICAS REALES (Tarjetas superiores)
   const [metrics, setMetrics] = useState({
@@ -198,58 +199,67 @@ export default function Dashboard() {
               </motion.div>
             )}
 
+            {/* Botón Principal de Nueva Medición */}
             <button
-              onClick={() => setIsMeasurementModalOpen(true)}
-              className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              onClick={() => {
+                // 🟢 Si hay historial, cargamos el último por defecto. Si no, va nulo.
+                setSelectedMeasurement(allMeasurements.length > 0 ? allMeasurements[0] : null);
+                setIsMeasurementModalOpen(true);
+              }}
+              className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors border border-gray-700"
             >
-              <Scale className="w-5 h-5" />
-              Ingresar Nueva Medición
+              <Scale className="w-5 h-5" /> Ingresar Nueva Medición
             </button>
           </motion.section>
 
           {/* 🟢 NUEVA SECCIÓN: HISTORIAL RÁPIDO */}
-          <div className="mt-8">
-            <h3 className="text-lg font-bold text-white mb-4">Historial Reciente</h3>
-            <div className="space-y-3">
-              {/* Aquí mapearemos las mediciones que vienen del backend */}
-              {isLoading ? (
-                <p className="text-gray-500">Cargando historial...</p>
-              ) : (
-                /* Suponiendo que tienes un estado llamado 'allMeasurements' o similar */
-                <div className="bg-bg-card border border-gray-800 rounded-xl overflow-hidden">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-900 text-gray-400 uppercase text-xs">
-                      <tr>
-                        <th className="px-4 py-3">Fecha</th>
-                        <th className="px-4 py-3">Peso</th>
-                        <th className="px-4 py-3">% Grasa</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-800">
-                      {allMeasurements.length === 0 ? (
-                        <tr>
-                          <td colSpan={3} className="px-4 py-8 text-center text-gray-500">
-                            Aún no tienes mediciones registradas.
-                          </td>
-                        </tr>
-                      ) : (
-                        // Mostramos solo las últimas 5 para no hacer la tabla gigante
-                        allMeasurements.slice(0, 5).map((med, index) => (
-                          <tr key={med.id || index} className="text-gray-300 hover:bg-gray-800/50 transition-colors">
-                            <td className="px-4 py-3">
-                              {new Date(med.date || med.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
-                            </td>
-                            <td className="px-4 py-3">{med.weightKg} kg</td>
-                            <td className="px-4 py-3 font-medium">
-                              {med.bodyFatPercentage ? `${med.bodyFatPercentage.toFixed(1)} %` : '-- %'}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+          <div className="mt-8 bg-gray-900/50 rounded-2xl border border-gray-800 p-6">
+            <h3 className="text-lg font-bold text-white mb-6">Historial Reciente</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-800 text-xs text-gray-500 uppercase tracking-wider">
+                    <th className="pb-3 font-semibold">Fecha</th>
+                    <th className="pb-3 font-semibold">Peso</th>
+                    <th className="pb-3 font-semibold">% Grasa</th>
+                    {/* 🟢 Nueva columna para el botón de edición */}
+                    <th className="pb-3 font-semibold text-right">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allMeasurements.map((measure) => (
+                    <tr key={measure.id} className="border-b border-gray-800/50 last:border-0 hover:bg-gray-800/20 transition-colors">
+                      <td className="py-4 text-sm text-white">
+                        {new Date(measure.date || measure.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </td>
+                      <td className="py-4 text-sm text-gray-300">{measure.weightKg} kg</td>
+                      <td className="py-4 text-sm text-gray-300">{measure.bodyFatPercentage}%</td>
+
+                      {/* 🟢 El Botón del Lapicito Mágico */}
+                      <td className="py-4 text-sm text-right">
+                        <button
+                          onClick={() => {
+                            setSelectedMeasurement(measure); // Pasamos ESTA medida exacta
+                            setIsMeasurementModalOpen(true);
+                          }}
+                          className="p-2 text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-all"
+                          title="Editar registro"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {allMeasurements.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-sm text-gray-500">
+                        Aún no tienes mediciones en tu historial.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -332,32 +342,26 @@ export default function Dashboard() {
       <AnimatePresence>
 
         {/* MODAL DE MEDICIÓN ACTUALIZADO */}
+        {/* 🟢 Le pasamos el selectedMeasurement en lugar de allMeasurements[0] */}
         {isMeasurementModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-bg-card w-full max-w-2xl rounded-2xl border border-gray-800 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
-            >
-              <div className="sticky top-0 bg-bg-card z-10 flex justify-between items-center p-6 border-b border-gray-800">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Scale className="w-5 h-5 text-primary" /> Ingresar Medición
-                </h3>
-                <button onClick={() => setIsMeasurementModalOpen(false)} className="text-gray-400 hover:text-white cursor-pointer">
-                  <X className="w-6 h-6" />
-                </button>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div className="bg-bg-dark border border-gray-800 p-6 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+                  <Scale className="w-6 h-6 text-primary" />
+                  Ingresar Medición
+                </h2>
+                <button onClick={() => setIsMeasurementModalOpen(false)} className="text-gray-400 hover:text-white">✕</button>
               </div>
-              <div className="p-6">
-                <p className="text-gray-400 mb-4">Selecciona tu protocolo y anota tus pliegues cutáneos.</p>
-                {/* 🟢 LA CONEXIÓN MAESTRA: Le pasamos la medida más reciente (índice 0) */}
-                <MeasurementForm
-                  initialData={allMeasurements.length > 0 ? allMeasurements[0] : null}
-                  onSuccess={() => {
-                    setIsMeasurementModalOpen(false);
-                    fetchMeasurements(); // Recarga los datos en tiempo real
-                  }}
-                />
-              </div>
-            </motion.div>
+
+              <MeasurementForm
+                initialData={selectedMeasurement}
+                onSuccess={() => {
+                  setIsMeasurementModalOpen(false);
+                  fetchMeasurements();
+                }}
+              />
+            </div>
           </div>
         )}
 

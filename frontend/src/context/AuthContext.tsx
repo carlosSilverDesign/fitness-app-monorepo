@@ -7,6 +7,7 @@ type UserProfile = {
   firstName: string;
   lastName: string;
   role: string;
+  email: string;
   gender?: string;      
   dateOfBirth?: string; 
   heightCm?: number;    
@@ -48,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             firstName: data.profile.firstName,
             lastName: data.profile.lastName,
             role: data.user.role,
+            email: data.user.email,
             gender: data.profile.gender,
             dateOfBirth: data.profile.dateOfBirth,
             heightCm: data.profile.heightCm
@@ -60,7 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser({
           firstName: 'Atleta', // Nombre por defecto
           lastName: '',
-          role: 'FREE'
+          role: 'FREE',
+          email: ''
         });
         setIsAuthenticated(true);
       } else {

@@ -127,3 +127,14 @@ model RoutineItem {
   restSeconds Int?     // Ej: 90 (segundos de descanso)
   notes       String?  // Ej: "Bajar lento, explosivo al subir"
 }
+
+// Modelo para los testimonios de la Landing Page
+model Testimonial {
+  id          String   @id @default(uuid())
+  name        String
+  achievement String   // Ej: "-15kg de grasa" o "+5kg de músculo"
+  content     String   @db.Text
+  imageUrl    String?  // URL de la foto del antes/después o avatar
+  order       Int      @default(0) // Para decidir cuál aparece primero
+  createdAt   DateTime @default(now())
+}

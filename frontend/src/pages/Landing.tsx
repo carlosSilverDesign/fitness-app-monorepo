@@ -6,6 +6,7 @@ import Calculator from '../components/Calculator';
 import About from '../components/About';
 import Footer from '../components/Footer';
 import Services from '../components/Services';
+import Testimonials from '../components/Testimonials';
 
 export default function Landing() {
   // 1. Estado para controlar el resplandor (Glow)
@@ -80,6 +81,8 @@ export default function Landing() {
         </section>
 
         <Services />
+        
+        <Testimonials />
 
       </div>
       

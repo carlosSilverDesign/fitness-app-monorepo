@@ -70,9 +70,12 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
-    // 2. Buscamos el perfil en la base de datos
+    // 2. Buscamos el perfil en la base de datos E INCLUIMOS LOS DATOS DEL USUARIO (Email y Rol)
     const profile = await prisma.profile.findUnique({
       where: { userId },
+      include: {
+        user: true, // 🟢 EL FIX: Le decimos a Prisma que traiga el email desde la tabla principal
+      }
     });
 
     // 3. Si no existe, le avisamos amablemente
@@ -84,7 +87,10 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
     // 4. Devolvemos los datos del perfil
     res.status(200).json({
       profile: profile, // Aquí van firstName, lastName, etc.
-      user: req.user,   // Aquí va el role y el userId del token
+      user: {
+        role: profile.user.role,
+        email: profile.user.email, // 🟢 ESTA ES LA LÍNEA MÁGICA QUE SOLUCIONA TU ADMIN
+      }
     });
   } catch (error) {
     console.error('Error en getProfile:', error);

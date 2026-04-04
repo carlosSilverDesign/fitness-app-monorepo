@@ -9,12 +9,13 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   // 🟢 1. Traemos checkAuth y quitamos el authLoading que no existía
   const { user, isAuthenticated, checkAuth } = useAuth();
+  console.log("Datos del usuario en memoria:", user);
   
   // 🟢 2. Estado local de carga (Idéntico a tu Dashboard normal)
   const [isPageLoading, setIsPageLoading] = useState(true);
 
   // SEGURIDAD: Cambia esto por el correo real
-  //const ADMIN_EMAIL = 'Percy-gatito@mail.com'; 
+  const ADMIN_EMAIL = 'percy-gatito@mail.com'; 
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -42,10 +43,9 @@ export default function AdminDashboard() {
     if (!isPageLoading) {
       if (!isAuthenticated) {
         navigate('/login');
+      } else if (user?.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+        navigate('/dashboard'); // Si no es admin, lo devolvemos a su panel
       }
-      //} else if (user?.email !== ADMIN_EMAIL) {
-      //  navigate('/dashboard'); // Si no es admin, lo devolvemos a su panel
-      // }
     }
   }, [isAuthenticated, user, isPageLoading, navigate]);
 
@@ -79,8 +79,7 @@ export default function AdminDashboard() {
   };
 
   // 🟢 5. Pantalla de carga segura
-  // if (isPageLoading || user?.email !== ADMIN_EMAIL) {
-  if (isPageLoading) { 
+  if (isPageLoading || user?.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
     return (
       <div className="min-h-screen bg-bg-dark flex items-center justify-center">
         <Loader2 className="w-10 h-10 text-primary animate-spin" />

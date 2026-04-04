@@ -2,21 +2,17 @@ import type { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 // IMPORTANTE: En NodeNext (ES Modules), las importaciones locales DEBEN llevar la extensión ".js" 
-// aunque el archivo físico sea ".ts". Es una regla estricta de Node.js moderno.
 import prisma from '../db/prisma.js';
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    // 🟢 1. Recibimos TODOS los datos del frontend (incluyendo el nombre)
     const { email, password, firstName, lastName } = req.body;
 
-    // 2. Validación básica actualizada
     if (!email || !password || !firstName || !lastName) {
       res.status(400).json({ error: 'Todos los campos son obligatorios (email, password, nombre y apellido).' });
       return;
     }
 
-    // 3. Verificar si el usuario ya existe en la base de datos
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -26,21 +22,14 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    // 4. Encriptar la contraseña (Hashing)
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // ==========================================
-    // 🟢 EL ESLABÓN PERDIDO: CREAR USUARIO + PERFIL
-    // ==========================================
-    // Usamos una "Escritura Anidada" de Prisma para que sea transaccional.
-    // Si falla el perfil, falla el usuario, evitando cuentas huérfanas.
     const newUser = await prisma.user.create({
       data: {
         email,
         passwordHash,
         role: 'FREE', // Valor por defecto
-        // Le decimos a Prisma que cree el perfil vinculado automáticamente
         profile: {
           create: {
             firstName,
@@ -48,21 +37,21 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
           }
         }
       },
-      // Le pedimos a Prisma que nos devuelva el usuario con su perfil incluido
+      // 🟢 Pedimos a Prisma que devuelva el perfil
       include: {
         profile: true
       }
     });
 
-    // 6. Responder al frontend (Omitiendo enviar el passwordHash por seguridad)
+    // 🟢 Estandarizamos la respuesta para el Frontend
     res.status(201).json({
       message: 'Usuario y perfil creados exitosamente',
       user: {
         id: newUser.id,
         email: newUser.email,
         role: newUser.role,
-        createdAt: newUser.createdAt,
-        profile: newUser.profile // Devolvemos el perfil recién creado
+        firstName: newUser.profile?.firstName || '',
+        lastName: newUser.profile?.lastName || '',
       },
     });
   } catch (error) {
@@ -71,29 +60,29 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-// NUEVA FUNCIÓN: Inicio de sesión (Se mantiene intacta)
+
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
-    // 1. Validar que envíen los datos
     if (!email || !password) {
       res.status(400).json({ error: 'El email y la contraseña son obligatorios.' });
       return;
     }
 
-    // 2. Buscar al usuario en la base de datos
+    // 🟢 EL FIX: Agregamos include: { profile: true }
     const user = await prisma.user.findUnique({
       where: { email },
+      include: {
+        profile: true // Ahora Prisma sí traerá el nombre y apellido
+      }
     });
 
-    // Tip de Senior: Por seguridad, nunca decimos si falló el correo o la contraseña.
     if (!user) {
       res.status(401).json({ error: 'Credenciales inválidas.' });
       return;
     }
 
-    // 3. Verificar que la contraseña coincida con el hash
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     
     if (!isPasswordValid) {
@@ -101,31 +90,73 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // 4. Asegurarnos para TypeScript que el secreto existe
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {
       throw new Error('JWT_SECRET no está configurado en el archivo .env');
     }
 
-    // 5. Generar el JWT (El "Carnet Digital")
     const token = jwt.sign(
-      { userId: user.id, role: user.role }, // Payload
-      jwtSecret,                            // La firma secreta
-      { expiresIn: '7d' }                   // Expiración: 7 días
+      { userId: user.id, role: user.role },
+      jwtSecret,                            
+      { expiresIn: '7d' }                   
     );
 
-    // 6. Enviar la respuesta exitosa
+    // 🟢 Estandarizamos la respuesta para inyectarla perfecto en AuthContext
     res.status(200).json({
       message: 'Inicio de sesión exitoso',
-      token, // Aquí va nuestro JWT
+      token, 
       user: {
         id: user.id,
         email: user.email,
         role: user.role,
+        firstName: user.profile?.firstName || 'Atleta', // Fallback de seguridad
+        lastName: user.profile?.lastName || '',
+        gender: user.profile?.gender,
+        dateOfBirth: user.profile?.dateOfBirth,
+        heightCm: user.profile?.heightCm
       },
     });
   } catch (error) {
     console.error('Error en loginUser:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
+
+// 🟢 EXTRA: Función para validar el token (checkAuth)
+// Si en tu backend tienes una ruta GET /me para validar la sesión, asegúrate de que sea así:
+export const getMe = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).user?.userId; // Extraído de tu middleware de JWT
+    
+    if (!userId) {
+      res.status(401).json({ error: 'No autorizado' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { profile: true } // Siempre incluir el perfil
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'Usuario no encontrado' });
+      return;
+    }
+
+    res.status(200).json({
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        firstName: user.profile?.firstName || 'Atleta',
+        lastName: user.profile?.lastName || '',
+        gender: user.profile?.gender,
+        dateOfBirth: user.profile?.dateOfBirth,
+        heightCm: user.profile?.heightCm
+      }
+    });
+  } catch (error) {
+    console.error('Error en getMe:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };

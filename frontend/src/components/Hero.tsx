@@ -45,7 +45,7 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-6"
           >
-            Transforma tu cuerpo con <span className="text-emerald-500">Ciencia</span>
+            Transforma tu cuerpo con <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">Ciencia</span>
           </motion.h1>
           
           <motion.p 
@@ -63,12 +63,12 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.6 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 px-8 py-4 rounded-full font-bold text-lg transition-colors cursor-pointer"
+            className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-gray-950 px-8 py-4 rounded-full font-bold text-lg transition-colors cursor-pointer"
             onClick={() => {
               document.getElementById('calculator-section')?.scrollIntoView({ behavior: 'smooth' });
             }}
           >
-            Calcula tu % de Grasa Gratis
+            Calcula tu % de Grasa
             <ArrowRight className="w-5 h-5" />
           </motion.button>
         </motion.div>

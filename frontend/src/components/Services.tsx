@@ -151,8 +151,15 @@ export default function Services() {
                 <li className="flex gap-2 text-sm text-gray-300"><CheckCircle2 className="w-5 h-5 text-gray-500" /> Corrección técnica presencial.</li>
               </ul>
             </div>
-            {/* CTA Massive (Ley de Fitts) */}
-            <button className="w-full py-4 bg-white hover:bg-gray-200 text-bg-dark font-black rounded-xl transition-all shadow-lg shadow-white/5 mt-auto">
+
+            {/* CTA Presencial */}
+            <button 
+              onClick={() => {
+                const message = "Hola Coach Lucy, vengo de la web y quiero agendar mi diagnóstico en modalidad Presencial.";
+                window.open(`https://wa.me/51978578980?text=${encodeURIComponent(message)}`, '_blank');
+              }}
+              className="w-full py-4 bg-white hover:bg-gray-200 text-bg-dark font-black rounded-xl transition-all shadow-lg shadow-white/5 mt-auto cursor-pointer"
+            >
               Agenda tu diagnóstico
             </button>
           </motion.div>
@@ -176,8 +183,15 @@ export default function Services() {
                 <li className="flex gap-2 text-sm text-gray-300"><CheckCircle2 className="w-5 h-5 text-gray-500" /> <span className="italic text-gray-400">(No incluye traslado de maquinaria pesada).</span></li>
               </ul>
             </div>
-            {/* CTA Massive (Ley de Fitts) */}
-            <button className="w-full py-4 bg-white hover:bg-gray-200 text-bg-dark font-black rounded-xl transition-all shadow-lg shadow-white/5 mt-auto">
+
+            {/* CTA A Domicilio */}
+            <button 
+              onClick={() => {
+                const message = "Hola Coach Lucy, vengo de la web y quiero explorar mi potencial en la modalidad A Domicilio.";
+                window.open(`https://wa.me/51978578980?text=${encodeURIComponent(message)}`, '_blank');
+              }}
+              className="w-full py-4 bg-white hover:bg-gray-200 text-bg-dark font-black rounded-xl transition-all shadow-lg shadow-white/5 mt-auto cursor-pointer"
+            >
               Explora tu potencial
             </button>
           </motion.div>

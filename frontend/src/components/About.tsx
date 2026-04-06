@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Award, Users, TrendingUp } from 'lucide-react';
+import coachLucyImg from '../assets/coach-lucy.jpg';
 
 export default function About() {
   return (
@@ -20,9 +21,11 @@ export default function About() {
           >
             <div className="aspect-[4/5] bg-gray-900 rounded-3xl overflow-hidden border border-gray-800 relative shadow-2xl z-10">
               <div className="absolute inset-0 bg-gradient-to-t from-bg-dark via-bg-dark/20 to-transparent z-10" />
-              <div className="w-full h-full flex items-center justify-center text-gray-700">
-                [ Foto Audaz de Coach Lucy Aquí ]
-              </div>
+              <img 
+                src={coachLucyImg} 
+                alt="Coach Lucy Pérez" 
+                className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+              />
             </div>
 
             {/* Tarjeta Flotante Animada */}

@@ -135,6 +135,7 @@ model Testimonial {
   achievement String   // Ej: "-15kg de grasa" o "+5kg de músculo"
   content     String   @db.Text
   imageUrl    String?  // URL de la foto del antes/después o avatar
+  rating      Int      @default(5) // Para controlar las estrellas (1 al 5)
   order       Int      @default(0) // Para decidir cuál aparece primero
   createdAt   DateTime @default(now())
 }

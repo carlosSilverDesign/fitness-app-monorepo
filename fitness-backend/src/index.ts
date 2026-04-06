@@ -3,6 +3,7 @@ import cors from 'cors';
 import authRoutes from './routes/auth.routes.js'; // Importamos el router
 import profileRoutes from './routes/profile.routes.js';
 import measurementRoutes from './routes/measurement.routes.js';
+import testimonialRoutes from './routes/testimonial.routes.js';
 
 const app = express();
 app.use(cors({
@@ -29,3 +30,5 @@ app.get('/', (req: Request, res: Response): void => {
 app.listen(PORT, (): void => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
+
+app.use('/api/v1/testimonials', testimonialRoutes);

@@ -69,7 +69,7 @@ export default function Nav() {
 
           <div className="hidden md:flex text-2xl font-bold text-white tracking-tighter items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-primary inline-block" />
-            Coach<span className="text-primary">Lucy</span>
+            Lucy Pérez<span className="text-primary">Trainer</span>
           </div>
         </Link>
 
